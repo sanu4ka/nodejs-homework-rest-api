@@ -29,6 +29,7 @@ const updateContact = async (contactId, body) => {
   const id = contactId;
   contacts[contactIndex] = { id, name, email, phone };
   await fs.writeFile("./models/contacts.json", JSON.stringify(contacts));
+  return getById(contactId);
 };
 
 module.exports = {
