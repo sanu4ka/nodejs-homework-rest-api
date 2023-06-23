@@ -1,5 +1,4 @@
 const Contact = require("../models/contactModel");
-const { isValidObjectId } = require("mongoose");
 
 const getContactsList = async (req, res, next) => {
   try {
@@ -42,14 +41,9 @@ const updateContactById = async (req, res, next) => {
 const deleteContactById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const isCorrectId = await Contact.findOne({ _id: id });
-    console.log(isCorrectId);
-    if (isCorrectId) {
-      const erri = await Contact.deleteOne({ _id: id });
-      console.log(erri);
-      res.status(200).json({ message: "contact deleted" });
-    }
-    next();
+    await Contact.findOneAndDelete({ _id: id });
+
+    res.status(200).json({ message: "contact deleted" });
   } catch (error) {
     next(error);
   }

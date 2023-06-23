@@ -1,11 +1,10 @@
 const Joi = require("joi");
-const { isValidObjectId } = require("mongoose");
+const Contact = require("../models/contactModel");
 
 const checkId = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const isCorrectId = isValidObjectId(id);
-
+    const isCorrectId = await Contact.findOne({ _id: id });
     if (isCorrectId) return next();
 
     const error = new Error("Not found");
