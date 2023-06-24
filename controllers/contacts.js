@@ -42,7 +42,6 @@ const deleteContactById = async (req, res, next) => {
   try {
     const { id } = req.params;
     await Contact.findOneAndDelete({ _id: id });
-
     res.status(200).json({ message: "contact deleted" });
   } catch (error) {
     next(error);
