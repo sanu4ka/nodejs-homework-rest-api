@@ -1,12 +1,15 @@
 const Joi = require("joi");
-const { getById } = require("../models/contacts");
+const { isValidObjectId } = require("mongoose");
+const Contact = require("../models/contactModel");
 
 const checkId = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await getById(id);
-
-    if (contact) return next();
+    const isValidId = isValidObjectId(id);
+    if (isValidId) {
+      const isCorrectId = await Contact.findOne({ _id: id });
+      if (isCorrectId) return next();
+    }
 
     const error = new Error("Not found");
     error.status = 404;
@@ -34,6 +37,24 @@ const checkData = async (req, res, next) => {
         .status(400)
         .json({ message: `missing required ${fieldName} field` });
 
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const checkFavoriteData = async (req, res, next) => {
+  try {
+    if (Object.keys(req.body).length === 0) {
+      return res.status(400).json({ message: `missing field favorite` });
+    }
+    const schema = Joi.object({
+      favorite: Joi.boolean().required(),
+    });
+    const validation = schema.validate(req.body);
+
+    if (validation.error)
+      return res.status(400).json({ message: `must be true or false` });
     next();
   } catch (error) {
     next(error);
@@ -79,6 +100,7 @@ const validateData = async (req, res, next) => {
 };
 
 module.exports = {
+  checkFavoriteData,
   checkId,
   checkData,
   validateData,

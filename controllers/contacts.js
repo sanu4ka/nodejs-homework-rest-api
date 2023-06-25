@@ -1,16 +1,8 @@
-const { nanoid } = require("nanoid");
-
-const {
-  listContacts,
-  getById,
-  removeContact,
-  addContact,
-  updateContact,
-} = require("../models/contacts");
+const Contact = require("../models/contactModel");
 
 const getContactsList = async (req, res, next) => {
   try {
-    const contacts = await listContacts();
+    const contacts = await Contact.find();
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
@@ -19,15 +11,8 @@ const getContactsList = async (req, res, next) => {
 
 const createContact = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
-    const newUser = {
-      id: nanoid(),
-      name,
-      email,
-      phone,
-    };
-    await addContact(newUser);
-    res.status(201).json(newUser);
+    const newContact = await Contact.create(req.body);
+    res.status(201).json(newContact);
   } catch (error) {
     res.status(400).json({ message: "Missing required field" });
   }
@@ -36,7 +21,7 @@ const createContact = async (req, res, next) => {
 const getContactById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await getById(id);
+    const contact = await Contact.findOne({ _id: id });
     res.status(200).json(contact);
   } catch (error) {
     next(error);
@@ -46,8 +31,8 @@ const getContactById = async (req, res, next) => {
 const updateContactById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const contact = await updateContact(id, req.body);
-    res.status(200).json(contact);
+    await Contact.findOneAndUpdate({ _id: id }, req.body);
+    res.status(200).json(await Contact.findOne({ _id: id }));
   } catch (error) {
     next(error);
   }
@@ -56,8 +41,19 @@ const updateContactById = async (req, res, next) => {
 const deleteContactById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await removeContact(id);
+    await Contact.findOneAndDelete({ _id: id });
     res.status(200).json({ message: "contact deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateStatusContact = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    await Contact.findByIdAndUpdate({ _id: contactId }, req.body);
+
+    res.status(200).json(await Contact.findOne({ _id: contactId }));
   } catch (error) {
     next(error);
   }
@@ -69,4 +65,5 @@ module.exports = {
   getContactById,
   updateContactById,
   deleteContactById,
+  updateStatusContact,
 };
