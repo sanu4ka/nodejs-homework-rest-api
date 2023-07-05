@@ -1,26 +1,18 @@
 const User = require("../models/userModel");
-const jwt = require("jsonwebtoken");
-
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.SECRET_KEY, {
-    expiresIn: process.env.EXPIRATION_TIME,
-  });
-
-const decodeToken = (token) => jwt.decode(token);
-
-const getToken = (req) =>
-  req.headers.authorization?.startsWith("Beare") &&
-  req.headers.authorization.split(" ")[1];
+const { setHashPassword, comparePassword } = require("../utils/password");
+const signToken = require("../utils/token");
 
 const registerUser = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
     if (await User.findOne({ email })) {
       return res.status(409).json({ message: "Email in use" });
     }
-    const newUser = await User.create(req.body);
-    console.log(newUser);
-    res.status(201).json(newUser);
+    const hashPassword = await setHashPassword(password);
+    const newUser = await User.create({ email, password: hashPassword });
+    res
+      .status(201)
+      .json({ user: { email, subscription: newUser.subscription } });
   } catch (error) {
     next(error);
   }
@@ -29,13 +21,19 @@ const registerUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (User.findOne({ email }))
+    const user = await User.findOne({ email });
+    if (!user)
       return res.status(401).json({ message: "Email or password is wrong" });
-    if (User.findOne({ password }))
+    const comparedPassword = await comparePassword(password, user.password);
+    if (!comparedPassword)
       return res.status(401).json({ message: "Email or password is wrong" });
-    const user = await User.findOne(email, { email: 1, subscription: 1 });
     const token = signToken(user._id);
-    res.status(200).json({ token: token }, user);
+    await User.findByIdAndUpdate(user._id, { token });
+
+    res.status(200).json({
+      token,
+      user: { email: user.email, subscription: user.subscription },
+    });
   } catch (error) {
     next(error);
   }
@@ -43,11 +41,9 @@ const loginUser = async (req, res, next) => {
 
 const logoutUser = async (req, res, next) => {
   try {
-    const { id } = decodeToken(getToken(req));
-    const user = await User.findOne({ _id: id }, { token: 0 });
-    if (!user) return res.status(401).json({ message: "Not authorized" });
-    await User.findOneAndUpdate({ _id: id }, user);
-    res.status(204);
+    const { _id } = req.user;
+    await User.findByIdAndUpdate(_id, { token: "" });
+    res.status(204).json();
   } catch (error) {
     next(error);
   }
@@ -55,10 +51,9 @@ const logoutUser = async (req, res, next) => {
 
 const checkUser = async (req, res, next) => {
   try {
-    const { id } = decodeToken(getToken(req));
-    const user = await User.findOne({ _id: id }, { email: 1, subscription: 1 });
-    if (!user) return res.status(401).json({ message: "Not authorized" });
-    res.status(200).json(user);
+    const { email, subscription } = req.user;
+
+    res.status(200).json({ user: { email, subscription } });
   } catch (error) {
     next(error);
   }

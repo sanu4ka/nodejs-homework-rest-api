@@ -13,15 +13,17 @@ const {
   validateData,
   checkFavoriteData,
 } = require("../../middlewares/contacts");
+const auth = require("../../middlewares/authorization");
 
 const router = express.Router();
 
+router.use("/", auth);
 router
   .route("/")
   .get(getContactsList)
   .post(checkData, validateData, createContact);
 
-router.use("/:id", checkId);
+router.use("/:id", auth, checkId);
 router
   .route("/:id")
   .get(getContactById)
