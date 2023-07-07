@@ -53,7 +53,7 @@ const checkUser = async (req, res, next) => {
   try {
     const { email, subscription } = req.user;
 
-    res.status(200).json({ user: { email, subscription } });
+    res.status(200).json({ email, subscription } );
   } catch (error) {
     next(error);
   }
