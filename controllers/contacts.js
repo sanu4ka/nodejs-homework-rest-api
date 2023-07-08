@@ -2,7 +2,8 @@ const Contact = require("../models/contactModel");
 
 const getContactsList = async (req, res, next) => {
   try {
-    const contacts = await Contact.find();
+    const { _id: owner } = req.user;
+    const contacts = await Contact.find({ owner });
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
@@ -11,8 +12,9 @@ const getContactsList = async (req, res, next) => {
 
 const createContact = async (req, res, next) => {
   try {
-    const newContact = await Contact.create(req.body);
-    res.status(201).json(newContact);
+    const { _id: owner } = req.user;
+    const newContact = await Contact.create({ ...req.body, owner });
+    res.status(201).json({ contact: newContact });
   } catch (error) {
     res.status(400).json({ message: "Missing required field" });
   }
