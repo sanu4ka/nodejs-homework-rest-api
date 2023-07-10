@@ -76,12 +76,13 @@ const checkUser = async (req, res, next) => {
 
 const changeAvatar = async (req, res, next) => {
   const { user, file } = req;
-  const tempDir = path.join(__dirname, "../", "tmp/");
-  const avatar = await ImageService.save(file, tempDir);
-  const oldAvatar = `${tempDir}${avatar}`;
-  const newDir = path.join(__dirname, "../", "public/avatars/");
+  await fs.mkdir('../tmp',  { recursive: true })
+  const tempDir = path.join(__dirname, "../", "tmp");
+  await ImageService.save(file);
+  const oldAvatar = `${tempDir}/${file.originalname}`;
+  const newDir = path.join(__dirname, "../", "public/avatars");
   const newFileName = `${uuid.v4()}.jpeg`;
-  const avatarURL = `${newDir}${newFileName}`;
+  const avatarURL = `${newDir}/${newFileName}`;
   await fs.rename(oldAvatar, avatarURL);
   await User.findByIdAndUpdate(user._id, { avatarURL: avatarURL });
   res.status(200).json({ avatarURL });
