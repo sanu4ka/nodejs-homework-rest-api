@@ -1,5 +1,5 @@
-const ImageService = require("../services/imageService");
+const {upload} = require("../services/imageService");
 
-const uploadUserAvatar = ImageService.upload("avatar");
+const uploadUserAvatar = upload("avatar");
 
 module.exports = uploadUserAvatar;

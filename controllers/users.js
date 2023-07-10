@@ -1,9 +1,8 @@
 const User = require("../models/userModel");
-const ImageService = require("../services/imageService");
+const { process } = require("../services/imageService");
 const { setHashPassword, comparePassword } = require("../services/password");
 const signToken = require("../services/token");
 const gravatar = require("gravatar");
-const fs = require("fs").promises;
 const uuid = require("uuid");
 const path = require("path");
 
@@ -76,16 +75,15 @@ const checkUser = async (req, res, next) => {
 
 const changeAvatar = async (req, res, next) => {
   const { user, file } = req;
-  await fs.mkdir('../tmp',  { recursive: true })
-  const tempDir = path.join(__dirname, "../", "tmp");
-  await ImageService.save(file);
+  const tempDir = path.join(__dirname, "..", "tmp");
   const oldAvatar = `${tempDir}/${file.originalname}`;
-  const newDir = path.join(__dirname, "../", "public/avatars");
+  const newDir = path.join(__dirname, "..", "public", "avatars");
   const newFileName = `${uuid.v4()}.jpeg`;
-  const avatarURL = `${newDir}/${newFileName}`;
-  await fs.rename(oldAvatar, avatarURL);
-  await User.findByIdAndUpdate(user._id, { avatarURL: avatarURL });
-  res.status(200).json({ avatarURL });
+  const newAvatar = `${newDir}/${newFileName}`;
+
+  await process(oldAvatar, newDir, newFileName);
+  await User.findByIdAndUpdate(user._id, { avatarURL: newAvatar });
+  res.status(200).json({ newAvatar });
 };
 
 module.exports = {
