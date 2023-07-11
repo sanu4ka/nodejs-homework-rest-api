@@ -75,13 +75,9 @@ const checkUser = async (req, res, next) => {
 
 const changeAvatar = async (req, res, next) => {
   const { user, file } = req;
-  const tempDir = path.join(__dirname, "..", "tmp");
-  const oldAvatar = `${tempDir}/${file.originalname}`;
-  const newDir = path.join(__dirname, "..", "public", "avatars");
   const newFileName = `${uuid.v4()}.jpeg`;
-  const newAvatar = `${newDir}/${newFileName}`;
-
-  await process(oldAvatar, newDir, newFileName);
+  const newAvatar = `/avatars/${newFileName}`;
+  await process(file, newFileName);
   await User.findByIdAndUpdate(user._id, { avatarURL: newAvatar });
   res.status(200).json({ newAvatar });
 };
