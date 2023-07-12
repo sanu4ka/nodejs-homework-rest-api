@@ -108,8 +108,6 @@ const verifyToken = async (req, res, next) => {
 const resendEmail = async (req, res, next) => {
   try {
     const { email } = req.body;
-    // if (!email)
-    //   return res.status(404).json({ message: "missing required field email" });
     const user = await User.findOne({ email });
 
     if (!user || user.verify) {
