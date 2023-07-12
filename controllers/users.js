@@ -1,6 +1,10 @@
 const User = require("../models/userModel");
-const { setHashPassword, comparePassword } = require("../utils/password");
-const signToken = require("../utils/token");
+const { process } = require("../services/imageService");
+const { setHashPassword, comparePassword } = require("../services/password");
+const signToken = require("../services/token");
+const gravatar = require("gravatar");
+const uuid = require("uuid");
+const path = require("path");
 
 const registerUser = async (req, res, next) => {
   try {
@@ -8,8 +12,18 @@ const registerUser = async (req, res, next) => {
     if (await User.findOne({ email })) {
       return res.status(409).json({ message: "Email in use" });
     }
+    const avatarURL = gravatar.url(
+      email,
+      { s: "250", r: "x", d: "retro" },
+      false
+    );
     const hashPassword = await setHashPassword(password);
-    const newUser = await User.create({ email, password: hashPassword });
+    const newUser = await User.create({
+      email,
+      password: hashPassword,
+      avatarURL,
+    });
+    console.log(avatarURL, email);
     res
       .status(201)
       .json({ user: { email, subscription: newUser.subscription } });
@@ -53,10 +67,19 @@ const checkUser = async (req, res, next) => {
   try {
     const { email, subscription } = req.user;
 
-    res.status(200).json({ email, subscription } );
+    res.status(200).json({ email, subscription });
   } catch (error) {
     next(error);
   }
+};
+
+const changeAvatar = async (req, res, next) => {
+  const { user, file } = req;
+  const newFileName = `${uuid.v4()}.jpeg`;
+  const newAvatar = `/avatars/${newFileName}`;
+  await process(file, newFileName);
+  await User.findByIdAndUpdate(user._id, { avatarURL: newAvatar });
+  res.status(200).json({ newAvatar });
 };
 
 module.exports = {
@@ -64,4 +87,5 @@ module.exports = {
   loginUser,
   logoutUser,
   checkUser,
+  changeAvatar,
 };
