@@ -9,6 +9,7 @@ const {
   resendEmail,
 } = require("../../controllers/users");
 const { validateUserData, validateEmail } = require("../../middlewares/users");
+
 const uploadUserAvatar = require("../../middlewares/avatar");
 const auth = require("../../middlewares/authorization");
 
@@ -27,5 +28,6 @@ router.route("/avatars").patch(auth, uploadUserAvatar, changeAvatar);
 router.route("/verify/:verificationToken").get(verifyToken);
 
 router.route("/verify").post(validateEmail, resendEmail);
+
 
 module.exports = router;

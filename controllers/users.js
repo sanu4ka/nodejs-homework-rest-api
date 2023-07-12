@@ -6,6 +6,7 @@ const sendMail = require("../services/sendEmail");
 const gravatar = require("gravatar");
 const uuid = require("uuid");
 
+
 const registerUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -18,7 +19,9 @@ const registerUser = async (req, res, next) => {
       false
     );
     const hashPassword = await setHashPassword(password);
+
     const verificationToken = uuid.v4();
+
     const newUser = await User.create({
       email,
       password: hashPassword,
@@ -26,6 +29,9 @@ const registerUser = async (req, res, next) => {
       verificationToken,
     });
     await sendMail(email, verificationToken);
+    });
+    console.log(avatarURL, email);
+
     res
       .status(201)
       .json({ user: { email, subscription: newUser.subscription } });
