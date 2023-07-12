@@ -29,9 +29,6 @@ const registerUser = async (req, res, next) => {
       verificationToken,
     });
     await sendMail(email, verificationToken);
-    });
-    console.log(avatarURL, email);
-
     res
       .status(201)
       .json({ user: { email, subscription: newUser.subscription } });
