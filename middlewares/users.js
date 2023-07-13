@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-const validateData = async (req, res, next) => {
+const validateUserData = async (req, res, next) => {
   try {
     const schema = Joi.object({
       email: Joi.string()
@@ -35,4 +35,30 @@ const validateData = async (req, res, next) => {
   }
 };
 
-module.exports = validateData;
+const validateEmail = async (req, res, next) => {
+  try {
+    const schema = Joi.object({
+      email: Joi.string()
+        .email()
+        .message({
+          "string.email": "must be a valid email, example: 'xxx@xxx.xx'",
+        })
+        .required(),
+    });
+
+    const { email } = req.body;
+    if (!email)
+      return res.status(404).json({ message: "missing required field email" });
+
+    const validation = schema.validate(req.body);
+
+    if (validation.error)
+      return res.status(400).json({ message: validation.error.message });
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { validateUserData, validateEmail };
